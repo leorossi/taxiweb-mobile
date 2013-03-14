@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>Hello World</title>
+        <script type="text/javascript" src="cordova-2.5.0.js"></script>
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+        <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+        <script type="text/javascript" charset="utf-8">
+
+            // Wait for Cordova to load
+            //
+            document.addEventListener("deviceready", onDeviceReady, false);
+
+            // Cordova is ready
+            //
+            function onDeviceReady() {
+                var element = document.getElementById('deviceProperties');
+                var baseUrl = 'http://localhost:3000';
+                var str = 'Device Name: '     + device.name     + '<br />' + 
+                                    'Device Cordova: '  + device.cordova + '<br />' + 
+                                    'Device Platform: ' + device.platform + '<br />' + 
+                                    'Device UUID: '     + device.uuid     + '<br />' + 
+                                    'Device Model: '    + device.model     + '<br />' + 
+                                    'Device Version: '  + device.version  + '<br />';
+                
+                
+
+                $('form#new-user-form input[name=device_id]').val(device.uuid);
+
+                var url = baseUrl + '/get_taxi_account';
+                dataToSend = {
+                    device_id: device.uuid
+                }
+                $.get(url, dataToSend, function(data) {
+                    if (data.success) {
+                        $('#taxi-call').show().on('click', function() {
+                            alert('call taxi');
+                        })
+
+                        if (data.admin) {
+                            alert('sei admin');
+                        }
+                    } else {
+                        
+                        $('#qualcosa').html(str);                
+                    }
+                }, 'json')
+
+                $('#admin-login-form').on('submit', function() {
+                    var form = $(this);
+                    $.post(form.attr('action'), form.serialize(), function(data) {
+                        if (data.success) {
+                            alert('success');
+                            $('div#not-logged').fadeOut();
+                            $('div#logged').fadeIn();
+                        } else {
+                            alert(data.message)
+                        }
+                    }, 'json')
+
+                    return false;
+                })
+
+                $('#new-user-form').on('submit', function() {
+                    var form = $(this);
+
+                    $.post(form.attr('action'), form.serialize(), function(data) {
+                        if (data.success) {
+                            alert('success');
+                        } else {
+                            alert(data.message)
+                        }
+                    }, 'json')
+
+                    return false;
+                })
+            }   
+            function adminLogout() {
+                
+                $.get(baseUrl + '/logout', function() {
+
+                });
+                $('div#logged').fadeOut();
+                $('div#not-logged').fadeIn();
+            }
+        </script>
+
+    </head>
+    <body>
+        <div id="not-logged">
+            
+            <div data-role="collapsible" data-theme="a" data-content-theme="a" id="admin-login-form-container">
+            <h3>Co.Ta.Fi Login</h3>
+                <form action="http://localhost:3000/login" id="admin-login-form" method="POST">
+                    <input type="text" name="user"/>
+                    <input type="text" name="password"/>
+                    <button>Invia</button>
+                </form>
+            </div>
+
+            <div id="taxi-call" style="display:none">
+                <h1>CLICCA QUI PER CHIAMARE UN TAXI</h1>
+            </div>
+            <div id="qualcosa"></div>
+        </div>
+
+        <div id="logged" style="display:none">
+            <button id="admin-logout" onclick="adminLogout()">Logout</button>
+            <h1>Registra Nuovo Utente</h1>
+            <form action="http://localhost:3000/add_user" id="new-user-form" method="POST">
+                <input type="text" name="username"/>
+                <input type="text" name="password"/>
+                <input type="hidden" name="device_id"/>
+                <button>Invia</button>
+            </form>
+        </div>
+    </body>
+</html>
